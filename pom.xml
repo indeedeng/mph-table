@@ -1,0 +1,96 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.indeed</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>19</version>
+    </parent>
+
+    <artifactId>mph-table</artifactId>
+    <name>mph</name>
+    <version>1.0.0</version>
+    <description>
+        Minimal Perfect Hash Tables
+    </description>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!-- <scm> -->
+    <!--     <url>https://github.com/indeedeng/mph-table</url> -->
+    <!--     <connection>scm:git:https://github.com/indeedeng/mph-table.git</connection> -->
+    <!--     <developerConnection>scm:git:git@github.com:indeedeng/mph-table.git</developerConnection> -->
+    <!-- </scm> -->
+
+    <dependencies>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>${fastutil.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>sux4j</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.indeed</groupId>
+            <artifactId>util-core</artifactId>
+            <version>${indeed-util.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.indeed</groupId>
+            <artifactId>util-io</artifactId>
+            <version>${indeed-util.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.indeed</groupId>
+            <artifactId>util-mmap</artifactId>
+            <version>${indeed-util.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.indeed</groupId>
+            <artifactId>util-serialization</artifactId>
+            <version>${indeed-util.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- releases of our own projects to use -->
+        <!-- these should only be SNAPSHOTs when no release is available -->
+        <indeed-util.version>[1.0.22,)</indeed-util.version>
+        <fastutil.version>6.2.2</fastutil.version>
+    </properties>
+</project>
