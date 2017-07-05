@@ -87,7 +87,7 @@ public class TableWriter {
     private static final Logger LOGGER = Logger.getLogger(TableWriter.class);
     public static final int MAX_TEMP_SHARDS = 512;
 
-    TableWriter() {}
+    private TableWriter() {}
 
     /**
      * Constructs and writes a minimal perfect hash table to
