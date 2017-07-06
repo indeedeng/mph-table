@@ -4,12 +4,13 @@
     <parent>
         <groupId>com.indeed</groupId>
         <artifactId>oss-parent</artifactId>
-        <version>19</version>
+        <version>20</version>
     </parent>
 
+    <groupId>com.indeed</groupId>
     <artifactId>mph-table</artifactId>
-    <name>mph</name>
-    <version>1.0.0</version>
+    <name>indeed-mph-table</name>
+    <version>1.0.0-SNAPSHOT</version>
     <description>
         Minimal Perfect Hash Tables
     </description>
@@ -90,7 +91,7 @@
 
         <!-- releases of our own projects to use -->
         <!-- these should only be SNAPSHOTs when no release is available -->
-        <indeed-util.version>[1.0.22,)</indeed-util.version>
-        <fastutil.version>6.2.2</fastutil.version>
+        <indeed-util.version>[1.0.24,)</indeed-util.version>
+        <fastutil.version>6.5.15</fastutil.version>
     </properties>
 </project>
