@@ -13,9 +13,9 @@ import java.io.Serializable;
  * A Serializer which is itself serializable, including additional
  * (optional) utilities for convenience and performance.
  *
- * See {@link AbstractSmartSerializer} for default methods and
- * {@link WrappedSerializer} to wrap any existing Serializer which
- * has a default constructor.
+ * See {@link com.indeed.mph.serializers.AbstractSmartSerializer} for default methods
+ * and {@link com.indeed.mph.serializers.WrappedSerializer} to wrap any existing
+ * Serializer which has a default constructor.
  *
  * @author alexs
  */

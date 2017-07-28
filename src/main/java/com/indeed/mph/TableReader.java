@@ -122,7 +122,10 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
      * @param dataPath          path to the raw serialized data if different from the meta-data setting
      * @param maxDataHeapUsage  if specified and positive, raw data less than this size will be
      *                            stored directly in the heap instead of mmaped
+     * @param <K> key type
+     * @param <V> value type
      * @return a new TableReader on the data
+     * @throws IOException if unable to open any of the files, or deserialize the metadata
      */
     public static <K, V> TableReader<K, V> open(@Nonnull final File metaPath,
                                                 @Nullable final File offsetsPath,

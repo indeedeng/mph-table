@@ -19,6 +19,9 @@ import java.io.Serializable;
  * optional offsets, and the hash function itself, but not the raw
  * data.  Generally you don't need to access this directly.
  *
+ * @param <K> key type
+ * @param <V> value type
+ *
  * @author alexs
  */
 public class TableMeta<K, V> implements Serializable {
