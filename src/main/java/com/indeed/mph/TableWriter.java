@@ -93,9 +93,12 @@ public class TableWriter {
      * Constructs and writes a minimal perfect hash table to
      * outputDir.  The entries may be iterated over multiple times.
      *
+     * @param <K> key type
+     * @param <V> value type
      * @param outputDir directory to write the hash table files to
      * @param config    a {@link TableConfig} specifying at least a key serializer
      * @param entries   an iterable of key-value Pairs representing entries in the table
+     * @throws IOException if unable to write the files or serialize the data
      */
     public static <K, V> void write(
             final File outputDir,
@@ -112,9 +115,16 @@ public class TableWriter {
     }
 
     /**
-     * As above, with a pre-computed dataSize, the final size of the
-     * raw serialized data in the table (omitting keys if using
-     * implicit storage, and omitting values if not used).
+     * As above, with a pre-computed dataSize.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @param outputDir directory to write the hash table files to
+     * @param config    a {@link TableConfig} specifying at least a key serializer
+     * @param entries   an iterable of key-value Pairs representing entries in the table
+     * @param dataSize   the final size of the raw serialized data in the table
+     *                   (omitting keys if using implicit storage, and omitting values if not used)
+     * @throws IOException if unable to write the files or serialize the data
      */
     public static <K, V> void write(
             final File outputDir,
@@ -140,6 +150,14 @@ public class TableWriter {
      * As above, using a one-time iterator.  The entries are written
      * to local temp data, making this suitable for use e.g. when
      * reading from a slow source such as hdfs.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @param outputDir directory to write the hash table files to
+     * @param config    a {@link TableConfig} specifying at least a key serializer
+     * @param entries   an iterable of key-value Pairs representing entries in the table
+     * @param tempDir   directory to write temporary files to
+     * @throws IOException if unable to write the files or serialize the data
      */
     public static <K, V> void writeWithTempStorage(
             final File outputDir,
@@ -177,6 +195,13 @@ public class TableWriter {
 
     /**
      * As above, using the outputDir for temp storage.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @param outputDir directory to write the hash table files to
+     * @param config    a {@link TableConfig} specifying at least a key serializer
+     * @param entries   an iterable of key-value Pairs representing entries in the table
+     * @throws IOException if unable to write the files or serialize the data
      */
     public static <K, V> void writeWithTempStorage(final File outputDir, final TableConfig<K, V> config, final Iterator<Pair<K, V>> entries) throws IOException {
         writeWithTempStorage(outputDir, config, entries, outputDir);

@@ -17,6 +17,7 @@ import java.util.List;
  * at the head of final byte.
  * This serializer also supports setting offset. Minus offset from all the number when serializing and plus back when
  * de-serializing.
+ *
  * @author xinjianz
  */
 public class SmartSmallLongListSerializer extends AbstractSmartSerializer<List<Long>>  {
@@ -46,7 +47,7 @@ public class SmartSmallLongListSerializer extends AbstractSmartSerializer<List<L
      * Only write data of the list, not include the length of the list.
      * @param data the input list.
      * @param out DataOutput.
-     * @throws IOException
+     * @throws IOException if unable to write to out
      */
     public void writeDataOnly(final List<Long> data, final DataOutput out) throws IOException {
         int index = 0;
@@ -90,7 +91,7 @@ public class SmartSmallLongListSerializer extends AbstractSmartSerializer<List<L
      * @param length the length of the array to read.
      * @param in the input data.
      * @return the deserialized list.
-     * @throws IOException
+     * @throws IOException if unable to write to out
      */
     public List<Long> readDataOnly(final int length, final DataInput in) throws IOException {
         final List<Long> numbers = new ArrayList<>(length);

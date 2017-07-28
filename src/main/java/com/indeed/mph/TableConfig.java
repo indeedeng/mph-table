@@ -46,6 +46,9 @@ import java.io.Serializable;
  *     mmapped instead of being stored directly in the heap.  By
  *     default we never store data in the heap.
  *
+ * @param <K> key type
+ * @param <V> value type
+ *
  * @author alexs
  */
 public class TableConfig<K, V> implements Serializable {
