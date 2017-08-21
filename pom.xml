@@ -51,6 +51,12 @@
             <groupId>it.unimi.dsi</groupId>
             <artifactId>sux4j</artifactId>
             <version>4.0.0</version>
+            <exclusions>
+              <exclusion>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
