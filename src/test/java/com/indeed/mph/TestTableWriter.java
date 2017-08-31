@@ -65,6 +65,31 @@ public class TestTableWriter {
     }
 
     @Test
+    public void testDupsWithDebugging() throws Exception {
+        final File table = new File(tmpDir, "debugdups");
+        final TableConfig<Long, Long> config =
+            new TableConfig()
+            .withKeySerializer(new SmartLongSerializer())
+            .withValueSerializer(new SmartLongSerializer())
+            .withDebugDuplicateKeys(true);
+        final List<Pair<Long, Long>> entries = new ArrayList<>();
+        for (long i = 0; i < 20; ++i) {
+            entries.add(new Pair(i, i * i));
+        }
+        entries.add(new Pair(3L, 5L));
+        boolean failed = false;
+        String failedMessage = null;
+        try {
+            TableWriter.write(table, config, entries);
+        } catch (final IllegalArgumentException e) {
+            failed = true;
+            failedMessage = e.getMessage();
+        }
+        assertTrue(failed);
+        assertEquals("Found duplicate key: [0, 0, 0, 0, 0, 0, 0, 3]: 3 (9) == 3 (5)", failedMessage);
+    }
+
+    @Test
     public void testNullKeys() throws Exception {
         final File table = new File(tmpDir, "nullkeys");
         final TableConfig<Long, Long> config =

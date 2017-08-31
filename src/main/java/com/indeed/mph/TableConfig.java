@@ -46,6 +46,10 @@ import java.io.Serializable;
  *     mmapped instead of being stored directly in the heap.  By
  *     default we never store data in the heap.
  *
+ *   debugDuplicateKeys: If true, asks TableWriter to attempt to
+ *     determine which keys were duplicated on failure to build the
+ *     hash function.
+ *
  * @param <K> key type
  * @param <V> value type
  *
@@ -64,6 +68,7 @@ public class TableConfig<K, V> implements Serializable {
     private final long maxHeapUsage;
     private final long maxDataHeapUsage;
     private final long tempShardSize;
+    private final boolean debugDuplicateKeys;
 
     TableConfig(@Nullable final SmartSerializer<? super K> keySerializer,
                 @Nullable final SmartSerializer<? super V> valueSerializer,
@@ -73,7 +78,8 @@ public class TableConfig<K, V> implements Serializable {
                 final int signatureWidth,
                 final long maxHeapUsage,
                 final long maxDataHeapUsage,
-                final long tempShardSize) {
+                final long tempShardSize,
+                final boolean debugDuplicateKeys) {
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
         this.keyValidator = keyValidator;
@@ -83,6 +89,7 @@ public class TableConfig<K, V> implements Serializable {
         this.maxHeapUsage = maxHeapUsage;
         this.maxDataHeapUsage = maxDataHeapUsage;
         this.tempShardSize = tempShardSize;
+        this.debugDuplicateKeys = debugDuplicateKeys;
         final LinearDiophantineEquation valueSizeEq = valueSerializer == null ?
             LinearDiophantineEquation.constantValue(0L) :
             valueSerializer.size() == null ? LinearDiophantineEquation.multipleOf(1L) : valueSerializer.size();
@@ -94,7 +101,7 @@ public class TableConfig<K, V> implements Serializable {
     }
 
     public TableConfig() {
-        this(null, null, new EqualKeyValidator(), KeyStorage.EXPLICIT, OffsetStorage.AUTOMATIC, 0, 0, 0, DEFAULT_SHARD_SIZE);
+        this(null, null, new EqualKeyValidator(), KeyStorage.EXPLICIT, OffsetStorage.AUTOMATIC, 0, 0, 0, DEFAULT_SHARD_SIZE, false);
     }
 
     public SmartSerializer<? super K> getKeySerializer() {
@@ -131,6 +138,10 @@ public class TableConfig<K, V> implements Serializable {
 
     public long getTempShardSize() {
         return tempShardSize;
+    }
+
+    public boolean getDebugDuplicateKeys() {
+        return debugDuplicateKeys;
     }
 
     public LinearDiophantineEquation getEntrySize() {
@@ -210,39 +221,43 @@ public class TableConfig<K, V> implements Serializable {
     }
 
     public TableConfig<K, V> withKeySerializer(final SmartSerializer<? super K> serializer) {
-        return new TableConfig<K,V>(serializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(serializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withValueSerializer(final SmartSerializer<? super V> serializer) {
-        return new TableConfig<K,V>(keySerializer, serializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, serializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withKeyValidator(final KeyValidator<K, V> validator) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, validator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, validator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withKeyStorage(final KeyStorage storage) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, storage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, storage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withOffsetStorage(final OffsetStorage storage) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, storage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, storage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withSignatureWidth(final int width) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, width, maxHeapUsage, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, width, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withMaxHeapUsage(final long maxHeap) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeap, maxDataHeapUsage, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeap, maxDataHeapUsage, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withMaxDataHeapUsage(final long maxDataHeap) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeap, tempShardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeap, tempShardSize, debugDuplicateKeys);
     }
 
     public TableConfig<K, V> withTempShardSize(final long shardSize) {
-        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, shardSize);
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, shardSize, debugDuplicateKeys);
+    }
+
+    public TableConfig<K, V> withDebugDuplicateKeys(final boolean debugDupKeys) {
+        return new TableConfig<K,V>(keySerializer, valueSerializer, keyValidator, keyStorage, offsetStorage, signatureWidth, maxHeapUsage, maxDataHeapUsage, tempShardSize, debugDupKeys);
     }
 
     public String toString() {
@@ -250,7 +265,7 @@ public class TableConfig<K, V> implements Serializable {
             " keyStorage: " + keyStorage + " offsetStorage: " + offsetStorage +
             " validator: " + keyValidator + " signatureWidth: " + signatureWidth +
             " maxHeapUsage: " + maxHeapUsage + " maxDataHeapUsage: " + maxDataHeapUsage +
-            " entrySize: " + entrySizeEq + "]";
+            " entrySize: " + entrySizeEq + " debugDupKeys: " + debugDuplicateKeys + "]";
     }
 
     public enum KeyStorage {
