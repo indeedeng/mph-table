@@ -16,7 +16,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Map;
-//import java.util.stream.LongStream;
 
 /**
  * General serializer for any "dictionary" of terms, storing the terms
@@ -59,7 +58,11 @@ public class SmartDictionarySerializer extends AbstractSmartSerializer<String> {
     public String read(final DataInput in) throws IOException {
         final Long n = serializer.read(in);
         if (words == null) {
-            words = dictionaryToIndex(dictionary);
+            synchronized (this) {
+                if (words == null) {
+                    words = dictionaryToIndex(dictionary);
+                }
+            }
         }
         if (n < 0 || n >= words.length) {
             throw new IOException("read unknown serialized id: " + n);
@@ -85,14 +88,24 @@ public class SmartDictionarySerializer extends AbstractSmartSerializer<String> {
             if (words == null) {
                 throw new IOException("invalid dictionary, flat and mapped indexes both null");
             }
-            dictionary = indexToDictionary(words);
+            synchronized (this) {
+                if (dictionary == null) {
+                    dictionary = indexToDictionary(words);
+                }
+            }
         }
         final Integer n = dictionary.get(str);
         if (n == null) {
-            final int result = dictionary.size();
-            dictionary.put(str, result);
-            words = null;       // invalidate current index
-            return result;
+            synchronized (this) {
+                final Integer n2 = dictionary.get(str);
+                if (n2 != null) {
+                    return n2;
+                }
+                final int result = dictionary.size();
+                dictionary.put(str, result);
+                words = null;       // invalidate current index
+                return result;
+            }
         }
         return n;
     }
@@ -131,7 +144,6 @@ public class SmartDictionarySerializer extends AbstractSmartSerializer<String> {
         }
         return new GOV4Function.Builder<String>()
                 .keys(Arrays.asList(words))
-            //.values(new LongArrayList(LongStream.range(0, words.length).iterator()))
                 .tempDir(tempFolder)
                 .transform(new TableWriter.SerializerTransformationStrategy<>(new SmartStringSerializer()))
                 .build();

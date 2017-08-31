@@ -29,12 +29,16 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class to write mph tables to disk.
@@ -137,11 +141,20 @@ public class TableWriter {
         ensureOutputDirectory(outputDir);
         final TransformationStrategy transformationStrategy =
             new SerializerTransformationStrategy(config.getKeySerializer());
-        final GOVMinimalPerfectHashFunction<K> mph = new GOVMinimalPerfectHashFunction.Builder<K>()
-            .transform(transformationStrategy)
-            .signed(config.getSignatureWidth())
-            .keys(new PairFirstIterable(entries))
-            .build();
+        GOVMinimalPerfectHashFunction<K> mph = null;
+        try {
+            mph = new GOVMinimalPerfectHashFunction.Builder<K>()
+                .transform(transformationStrategy)
+                .signed(config.getSignatureWidth())
+                .keys(new PairFirstIterable(entries))
+                .build();
+        } catch (final IllegalArgumentException e) {
+            if (e.getMessage() != null && e.getMessage().contains("duplicate")
+                && config.getDebugDuplicateKeys()) {
+                throw newDuplicateKeyException(entries, (SmartSerializer<K>) config.getKeySerializer(), e);
+            }
+            throw e;
+        }
         LOGGER.info("dataSize: " + dataSize + " numEntries: " + mph.size());
         writeWithMinimalPerfectHashFunction(null, outputDir, config, entries, mph, dataSize);
     }
@@ -461,6 +474,57 @@ public class TableWriter {
         outputFile.setReadOnly();
     }
 
+    private static <K, V> RuntimeException newDuplicateKeyException(final Iterable<Pair<K, V>> entries, final SmartSerializer<K> serializer, final RuntimeException e) {
+        // TODO: Consider a disk-based sort to detect dups.  As-is, this
+        // requires all keys (and their serialized forms) to fit in memory.
+        LOGGER.error("attempting to find duplicate keys", e);
+        K key1 = null;
+        K key2 = null;
+        ByteBuffer dupBytes = null;
+        {
+            final Map<ByteBuffer, K> serializedKeys = new HashMap<>();
+            for (final Pair<K, V> entry : entries) {
+                final K key = entry.getFirst();
+                final ByteBuffer bytes = serializeToBytes(serializer, key);
+                if (serializedKeys.containsKey(bytes)) {
+                    key1 = serializedKeys.get(bytes);
+                    key2 = key;
+                    dupBytes = bytes;
+                    LOGGER.error("found duplicate key: " + key1 + " == " + key2);
+                    break;
+                }
+                serializedKeys.put(bytes, key);
+            }
+        }
+        if (key1 != null) {
+            // Second pass to get associated values.
+            V value1 = null;
+            for (final Pair<K, V> entry : entries) {
+                final K key = entry.getFirst();
+                final ByteBuffer bytes = serializeToBytes(serializer, key);
+                if (bytes.equals(dupBytes)) {
+                    if (value1 == null) {
+                        value1 = entry.getSecond();
+                    } else {
+                        return new IllegalArgumentException("Found duplicate key: " + Arrays.toString(bytes.array()) + ": " + key1 + " (" + value1 + ") == " + key2 + " (" + entry.getSecond() + ")", e);
+                    }
+                }
+            }
+        }
+        return new IllegalArgumentException("couldn't find duplicate keys", e);
+    }
+
+    private static <T> ByteBuffer serializeToBytes(final SmartSerializer<T> serializer, final T t) {
+        final ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+        final DataOutputStream dataOutput = new DataOutputStream(byteOutput);
+        try {
+            serializer.write(t, dataOutput);
+        } catch (final IOException e) {
+            throw new RuntimeException("failed to serialize: " + t, e);
+        }
+        return ByteBuffer.wrap(byteOutput.toByteArray());
+    }
+
     public static class SerializerTransformationStrategy<K> implements TransformationStrategy<K> {
         private static final long serialVersionUID = 8186081021441487460L;
 
@@ -496,7 +560,7 @@ public class TableWriter {
             try {
                 serializer.write(k, dataOutput);
             } catch (final IOException e) {
-                throw new RuntimeException("failed to serialize", e);
+                throw new RuntimeException("failed to serialize: " + k, e);
             }
             final byte[] res = byteOutput.toByteArray();
             return res;
