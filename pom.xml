@@ -10,7 +10,7 @@
     <groupId>com.indeed</groupId>
     <artifactId>mph-table</artifactId>
     <name>indeed-mph-table</name>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
     <description>
         Minimal Perfect Hash Tables
     </description>
