@@ -69,6 +69,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
     private final Select select;
     private MMapBuffer data;
     private Memory dataMemory;
+    private final K minKey;
+    private final K maxKey;
     private final AtomicLong filteredCount = new AtomicLong(0L);
     private final AtomicLong missingCount = new AtomicLong(0L);
     private final AtomicLong retrievedCount = new AtomicLong(0L);
@@ -81,6 +83,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
         offsets = null;
         select = null;
         memory = null;
+        minKey = meta.getMinKey();
+        maxKey = meta.getMaxKey();
     }
 
     public TableReader(@Nonnull final TableMeta<K, V> meta,
@@ -102,6 +106,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
             select = null;
             memory = null;
         }
+        minKey = meta.getMinKey();
+        maxKey = meta.getMaxKey();
     }
 
     @Override
@@ -259,10 +265,18 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
     }
 
     public long getHash(@Nonnull final K key) {
+        if ((minKey != null && ((Comparable) minKey).compareTo(key) > 0)
+            || (maxKey != null && ((Comparable) maxKey).compareTo(key) < 0)) {
+            return -1;
+        }
         return meta.getHash(key);
     }
 
     public long getOffset(@Nonnull final K key) {
+        if ((minKey != null && ((Comparable) minKey).compareTo(key) > 0)
+            || (maxKey != null && ((Comparable) maxKey).compareTo(key) < 0)) {
+            return -1;
+        }
         return meta.getOffset(key, memory, select);
     }
 
