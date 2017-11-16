@@ -1,6 +1,7 @@
 package com.indeed.mph;
 
 import com.google.common.collect.ImmutableList;
+import com.indeed.mph.serializers.AbstractSmartSerializer;
 import com.indeed.mph.serializers.SmartByteSerializer;
 import com.indeed.mph.serializers.SmartDictionarySerializer;
 import com.indeed.mph.serializers.SmartListSerializer;
@@ -14,6 +15,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -252,8 +255,8 @@ public class TestTableWriter {
     }
 
     @Test
-    public void testWriteFixedBloom() throws Exception {
-        final File fixedTable = new File(tmpDir, "fixedbloom");
+    public void testWriteFixedImplicit() throws Exception {
+        final File fixedTable = new File(tmpDir, "fixedimplicit");
         final TableConfig<Long, Long> config =
             new TableConfig()
             .withKeySerializer(new SmartLongSerializer())
@@ -272,6 +275,84 @@ public class TestTableWriter {
                 assertEquals(new Long(i * i), reader.get(i));
             }
             assertEquals(null, reader.get(21L));
+        }
+    }
+
+    @Test
+    public void testWriteFixedImplicitWithRangeChecks() throws Exception {
+        final File fixedTable = new File(tmpDir, "fixedrangechecks");
+        final TableConfig<Long, Long> config =
+            new TableConfig()
+            .withKeySerializer(new SmartLongSerializer())
+            .withValueSerializer(new SmartLongSerializer())
+            .withKeyStorage(TableConfig.KeyStorage.IMPLICIT)
+            .withRangeChecking(TableConfig.RangeChecking.MIN_AND_MAX)
+            .withSignatureWidth(3);
+        final Set<Pair<Long, Long>> entries = new HashSet<>();
+        for (long i = 0; i < 1000; i += 2) {  // evens
+            entries.add(new Pair(i, i * i));
+        }
+        TableWriter.write(fixedTable, config, entries);
+        try (final TableReader<Long, Long> reader = TableReader.open(fixedTable)) {
+            for (long i = 0; i < 1000; i += 2) {  // evens
+                assertEquals(new Long(i * i), reader.get(i));
+            }
+            int lowFalsePositives = 0;
+            int midFalsePositives = 0;
+            int highFalsePositives = 0;
+            for (long i = -5001; i < 5000; i += 2) {  // odds
+                if (reader.get(i) != null) {
+                    if (i < 0) {
+                        ++lowFalsePositives;
+                    } else if (i > 1000) {
+                        ++highFalsePositives;
+                    } else {
+                        ++midFalsePositives;
+                    }
+                }
+            }
+            assertEquals(0, lowFalsePositives);
+            assertTrue(midFalsePositives > 0);
+            assertEquals(0, highFalsePositives);
+        }
+    }
+
+    @Test
+    public void testWriteFixedImplicitWithRangeChecksUnserializable() throws Exception {
+        final File fixedTable = new File(tmpDir, "fixedrangechecksunserializable");
+        final TableConfig<Triple<Long, Long, Long>, Long> config =
+            new TableConfig()
+            .withKeySerializer(new SmartTripleSerializer(new SmartLongSerializer(), new SmartLongSerializer(), new SmartLongSerializer()))
+            .withValueSerializer(new SmartLongSerializer())
+            .withKeyStorage(TableConfig.KeyStorage.IMPLICIT)
+            .withRangeChecking(TableConfig.RangeChecking.MIN_AND_MAX)
+            .withSignatureWidth(3);
+        final Set<Pair<Triple<Long, Long, Long>, Long>> entries = new HashSet<>();
+        for (Long i = 0L; i < 1000; i += 2) {  // evens
+            entries.add(new Pair<>(new Triple<>(i - 1, i, i + 1), i * i));
+        }
+        TableWriter.write(fixedTable, config, entries);
+        try (final TableReader<Triple<Long, Long, Long>, Long> reader = TableReader.open(fixedTable)) {
+            for (Long i = 0L; i < 1000; i += 2) {  // evens
+                assertEquals(new Long(i * i), reader.get(new Triple<>(i - 1, i, i + 1)));
+            }
+            int lowFalsePositives = 0;
+            int midFalsePositives = 0;
+            int highFalsePositives = 0;
+            for (Long i = -5001L; i < 5000; i += 2) {  // odds
+                if (reader.get(new Triple<>(i - 1, i, i + 1)) != null) {
+                    if (i < 0) {
+                        ++lowFalsePositives;
+                    } else if (i > 1000) {
+                        ++highFalsePositives;
+                    } else {
+                        ++midFalsePositives;
+                    }
+                }
+            }
+            assertEquals(0, lowFalsePositives);
+            assertTrue(midFalsePositives > 0);
+            assertEquals(0, highFalsePositives);
         }
     }
 
@@ -611,6 +692,102 @@ public class TestTableWriter {
             }
             assertEquals(Long.valueOf(end - 2L).byteValue(), (byte) reader.get(end - 2L));
             assertEquals(Long.valueOf(end - 1L).byteValue(), (byte) reader.get(end - 1L));
+        }
+    }
+
+    public static class Triple<A, B, C> implements Comparable<Triple<A, B, C>> {
+        public A a;
+        public B b;
+        public C c;
+        public Triple(final A a, final B b, final C c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Triple) {
+                final Triple t = (Triple)obj;
+                final Object a = t.a;
+                final Object b = t.b;
+                final Object c = t.c;
+                return (a == null ? this.a == null : a.equals(this.a))
+                    && (b == null ? this.b == null : b.equals(this.b))
+                    && (c == null ? this.c == null : c.equals(this.c));
+            }
+            return false;
+        }
+        @Override
+        public int hashCode() {
+            int result;
+            result = (a != null ? a.hashCode() : 0);
+            result = 31 * result + (b != null ? b.hashCode() : 0);
+            result = 31 * result + (c != null ? c.hashCode() : 0);
+            return result;
+        }
+        @Override
+        public String toString() {
+            return "("+a+", "+b+", "+c+")";
+        }
+        @Override
+        public int compareTo(final Triple<A, B, C> o) {
+            if (o == null) {
+                return 1;
+            }
+            if (a != null) {
+                if (a instanceof Comparable) {
+                    final int acmp = ((Comparable) a).compareTo(o.a);
+                    if (acmp != 0) return acmp;
+                }
+            } else if (o.a != null) {
+                return -1;
+            }
+            if (b != null) {
+                if (b instanceof Comparable) {
+                    final int bcmp = ((Comparable) b).compareTo(o.b);
+                    if (bcmp != 0) return bcmp;
+                }
+            } else if (o.b != null) {
+                return -1;
+            }
+            if (c != null) {
+                if (c instanceof Comparable) {
+                    return ((Comparable) c).compareTo(o.c);
+                }
+            } else if (o.c != null) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+
+    public static class SmartTripleSerializer<A, B, C> extends AbstractSmartSerializer<Triple<A, B, C>> {
+        private final SmartSerializer<A> serializer1;
+        private final SmartSerializer<B> serializer2;
+        private final SmartSerializer<C> serializer3;
+        public SmartTripleSerializer(final SmartSerializer<A> serializer1,
+                                     final SmartSerializer<B> serializer2,
+                                     final SmartSerializer<C> serializer3) {
+            this.serializer1 = serializer1;
+            this.serializer2 = serializer2;
+            this.serializer3 = serializer3;
+        }
+        @Override
+        public void write(final Triple<A, B, C> triple, final DataOutput out) throws IOException {
+            serializer1.write(triple.a, out);
+            serializer2.write(triple.b, out);
+            serializer3.write(triple.c, out);
+        }
+        @Override
+        public Triple<A, B, C> read(final DataInput in) throws IOException {
+            final A a = serializer1.read(in);
+            final B b = serializer2.read(in);
+            final C c = serializer3.read(in);
+            return new Triple<>(a, b, c);
+        }
+        @Override
+        public LinearDiophantineEquation size() {
+            return null;
         }
     }
 

@@ -72,6 +72,7 @@ import java.util.Map;
  *   --valueSerializer: full class name of the value serializer (default .SmartStringSerializer)
  *   --keyStorage: set to IMPLICIT to remove keys from table
  *   --offsetStorage: override the default choice
+ *   --rangeChecking: set to AUTOMATIC to enable tracking of min/max keys
  *   --maxHeapUsage: the limit beyond which offsets are mmapped instead of being stored in the heap
  *   --signatureWidth: bits per key to use in a bloom filter (required for IMPLICIT keyStorage)
  * <p>
@@ -142,11 +143,32 @@ public class TableWriter {
         final TransformationStrategy transformationStrategy =
             new SerializerTransformationStrategy(config.getKeySerializer());
         GOVMinimalPerfectHashFunction<K> mph = null;
+        final List<K> minMaxKeys = new ArrayList<>();
+        minMaxKeys.add(null);
+        minMaxKeys.add(null);
         try {
+            final boolean trackMinMaxKeys;
+            switch (config.getRangeChecking()) {
+            case MIN_AND_MAX:
+                final Class keyClass = entries.iterator().next().getFirst().getClass();
+                final boolean isComparable = Comparable.class.isAssignableFrom(keyClass);
+                if (!isComparable) {
+                    throw new IllegalArgumentException("can't track ranges for non-comparable type: " + keyClass);
+                }
+                trackMinMaxKeys = true;
+                break;
+            case AUTOMATIC:
+                trackMinMaxKeys = Comparable.class.isAssignableFrom(entries.iterator().next().getFirst().getClass());
+                break;
+            default:
+                trackMinMaxKeys = false;
+                break;
+            }
             mph = new GOVMinimalPerfectHashFunction.Builder<K>()
                 .transform(transformationStrategy)
                 .signed(config.getSignatureWidth())
-                .keys(new PairFirstIterable(entries))
+                .keys(trackMinMaxKeys ? new PairFirstRangeTrackingIterable(entries, minMaxKeys)
+                      : new PairFirstIterable(entries))
                 .build();
         } catch (final IllegalArgumentException e) {
             if (e.getMessage() != null && e.getMessage().contains("duplicate")
@@ -156,7 +178,7 @@ public class TableWriter {
             throw e;
         }
         LOGGER.info("dataSize: " + dataSize + " numEntries: " + mph.size());
-        writeWithMinimalPerfectHashFunction(null, outputDir, config, entries, mph, dataSize);
+        writeWithMinimalPerfectHashFunction(null, outputDir, config, entries, mph, minMaxKeys, dataSize);
     }
 
     /**
@@ -239,20 +261,23 @@ public class TableWriter {
             final TableConfig origConfig,
             final Iterable<Pair<K, V>> entries,
             final GOVMinimalPerfectHashFunction<K> mph,
+            final List<K> minMaxKeys,
             final long dataSize) throws IOException {
         final TableConfig config = TableConfig.OffsetStorage.AUTOMATIC.equals(origConfig.getOffsetStorage()) ?
             origConfig.withOffsetStorage(origConfig.chooseBestOffsetStorage(mph.size(), dataSize)) :
             origConfig;
+        final byte[] minKey = maybeSerializeKey(config, minMaxKeys.get(0));
+        final byte[] maxKey = maybeSerializeKey(config, minMaxKeys.get(1));
         final TableMeta<K, V> meta;
         switch (config.getOffsetStorage()) {
         case FIXED:
             LOGGER.info("writing with fixed offset storage: " + config);
-            meta = new TableMeta(config, mph, null, dataSize);
+            meta = new TableMeta(config, mph, null, minKey, maxKey, dataSize);
             writeToHashOffsets(outputDir, meta, entries, dataSize);
             break;
         case INDEXED:
             LOGGER.info("writing with indexed offset storage: " + config);
-            meta = new TableMeta(config, mph, null, dataSize);
+            meta = new TableMeta(config, mph, null, minKey, maxKey, dataSize);
             writeToIndexedOffsets(inputData, new File(outputDir, meta.DEFAULT_DATA_PATH), new File(outputDir, meta.DEFAULT_OFFSETS_PATH), meta, entries, dataSize);
             break;
         case SELECTED:
@@ -262,16 +287,23 @@ public class TableWriter {
             sizes.delete();
             if (select.bitVector() instanceof LongArrayBitVector &&
                 (config.getMaxHeapUsage() > 0 && select.numBits() / 8L > config.getMaxHeapUsage())) {
-                meta = new TableMeta(config, mph, null, dataSize);
+                meta = new TableMeta(config, mph, null, minKey, maxKey, dataSize);
                 writeLongs(new File(outputDir, meta.DEFAULT_OFFSETS_PATH), select.bitVector().bits());
             } else {
-                meta = new TableMeta(config, mph, select, dataSize);
+                meta = new TableMeta(config, mph, select, minKey, maxKey, dataSize);
             }
             break;
         default:
             throw new IllegalArgumentException("unknown offset storage: " + config.getOffsetStorage());
         }
         meta.store(new File(outputDir, meta.DEFAULT_META_PATH));
+    }
+
+    private static <K, V> byte[] maybeSerializeKey(final TableConfig<K, V> config, final K key) {
+        if (key != null) {
+            return serializeToBytes(config.getKeySerializer(), key).array();
+        }
+        return null;
     }
 
     private static <K, V> File writeToHashOffsets(
@@ -621,6 +653,47 @@ public class TableWriter {
         }
     }
 
+    public static class PairFirstRangeTrackingIterable<K extends Comparable<K>, V> implements Iterable<K> {
+        private final Iterable<Pair<K, V>> iter;
+        private final List<K> minMaxKeys;
+        public PairFirstRangeTrackingIterable(final Iterable<Pair<K, V>> iter, final List<K> minMaxKeys) {
+            this.iter = iter;
+            this.minMaxKeys = minMaxKeys;
+        }
+        @Override
+        public Iterator<K> iterator() {
+            return new PairFirstRangeTrackingIterator<>(iter.iterator(), minMaxKeys);
+        }
+    }
+
+    public static class PairFirstRangeTrackingIterator<K extends Comparable<K>, V> implements Iterator<K> {
+        private final Iterator<Pair<K, V>> iter;
+        private final List<K> minMaxKeys;
+        public PairFirstRangeTrackingIterator(final Iterator<Pair<K, V>> iter, final List<K> minMaxKeys) {
+            this.iter = iter;
+            this.minMaxKeys = minMaxKeys;
+        }
+        @Override
+        public boolean hasNext() {
+            return iter.hasNext();
+        }
+        @Override
+        public K next() {
+            final K key = iter.next().getFirst();
+            if (minMaxKeys.get(0) == null || key.compareTo(minMaxKeys.get(0)) < 0) {
+                minMaxKeys.set(0, key);
+            }
+            if (minMaxKeys.get(1) == null || key.compareTo(minMaxKeys.get(1)) > 0) {
+                minMaxKeys.set(1, key);
+            }
+            return key;
+        }
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     public static class SerializedKeyValueIterable<K, V> implements Iterable<Pair<K, V>> {
         private final File file;
         private final SmartSerializer keySerializer;
@@ -814,6 +887,8 @@ public class TableWriter {
                 config = config.withKeyStorage(TableConfig.KeyStorage.valueOf(args[++i])); break;
             case "--offsetStorage":
                 config = config.withOffsetStorage(TableConfig.OffsetStorage.valueOf(args[++i])); break;
+            case "--rangeChecking":
+                config = config.withRangeChecking(TableConfig.RangeChecking.valueOf(args[++i])); break;
             case "--signatureWidth":
                 config = config.withSignatureWidth(Integer.parseInt(args[++i])); break;
             case "--maxHeapUsage":

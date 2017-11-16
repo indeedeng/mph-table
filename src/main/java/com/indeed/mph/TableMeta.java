@@ -3,9 +3,12 @@ package com.indeed.mph;
 import com.indeed.util.mmap.Memory;
 import it.unimi.dsi.sux4j.mph.GOVMinimalPerfectHashFunction;
 import it.unimi.dsi.sux4j.bits.Select;
+import org.apache.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,6 +28,7 @@ import java.io.Serializable;
  * @author alexs
  */
 public class TableMeta<K, V> implements Serializable {
+    private static final Logger LOGGER = Logger.getLogger(TableMeta.class);
     private static final long serialVersionUID = 1288403300;
     public static final String DEFAULT_META_PATH = "meta.bin";
     public static final String DEFAULT_OFFSETS_PATH = "offsets.bin";
@@ -39,17 +43,30 @@ public class TableMeta<K, V> implements Serializable {
     private File metaPath;
     private File offsetsPath;
     private File dataPath;
+    private final byte[] minKey;
+    private final byte[] maxKey;
+
+    public TableMeta(@Nonnull final TableConfig<K, V> config,
+                     @Nonnull final GOVMinimalPerfectHashFunction<K> mph,
+                     @Nullable final Select selectOffsets,
+                     @Nullable final byte[] minKey,
+                     @Nullable final byte[] maxKey,
+                     final long dataSize) {
+        this.config = config;
+        this.mph = mph;
+        this.selectOffsets = selectOffsets;
+        this.minKey = minKey;
+        this.maxKey = maxKey;
+        this.dataSize = dataSize;
+        this.bytesPerOffset = config.bytesPerOffset(numEntries(), dataSize);
+        this.timestamp = System.currentTimeMillis();
+    }
 
     public TableMeta(@Nonnull final TableConfig<K, V> config,
                      @Nonnull final GOVMinimalPerfectHashFunction<K> mph,
                      @Nullable final Select selectOffsets,
                      final long dataSize) {
-        this.config = config;
-        this.mph = mph;
-        this.selectOffsets = selectOffsets;
-        this.dataSize = dataSize;
-        this.bytesPerOffset = config.bytesPerOffset(numEntries(), dataSize);
-        this.timestamp = System.currentTimeMillis();
+        this(config, mph, selectOffsets, null, null, dataSize);
     }
 
     public static TableMeta load(@Nonnull final File input, @Nullable final File offsetsPath, @Nullable final File dataPath) throws IOException {
@@ -126,6 +143,16 @@ public class TableMeta<K, V> implements Serializable {
     }
 
     @Nullable
+    public K getMinKey() {
+        return minKey == null ? null : maybeDeserializeKey(minKey);
+    }
+
+    @Nullable
+    public K getMaxKey() {
+        return maxKey == null ? null : maybeDeserializeKey(maxKey);
+    }
+
+    @Nullable
     public Select getSelectOffsets() {
         return selectOffsets;
     }
@@ -168,9 +195,24 @@ public class TableMeta<K, V> implements Serializable {
         }
     }
 
+    private K maybeDeserializeKey(final byte[] bytes) {
+        try {
+            if (bytes != null) {
+                final DataInputStream in = new DataInputStream(new ByteArrayInputStream(bytes));
+                return (K) getConfig().getKeySerializer().read(in);
+            }
+        } catch (final IOException e) {
+            LOGGER.warn("couldn't deserialize key, range checking will be elided", e);
+        }
+        return null;
+    }
+
     public String toString() {
         return "[TableMeta version: " + version + " timestamp: " + timestamp + " config: " + config +
-            " mph: " + mph + " (" + mph.size() + " entries) " + " selectOffsets: " + selectOffsets +
+            " mph: " + mph + " (" + mph.size() + " entries)" +
+            (minKey != null ? " minKey: " + getMinKey() : "") +
+            (maxKey != null ? " maxKey: " + getMaxKey() : "") +
+            " selectOffsets: " + selectOffsets +
             " dataSize: " + dataSize + " metaPath: " + metaPath + " offsetsPath: " + offsetsPath +
             " dataPath: " + dataPath + "]";
     }
