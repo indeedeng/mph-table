@@ -29,3 +29,7 @@ tables without writing any code:
 
     # same as above, not actually storing the movie ids but still allowing retrieval by them
     $ java com.indeed.mph.TableWriter --keyStorage IMPLICIT --keySerializer .SmartVLongSerializer --valueSerializer '.SmartListSerializer(.SmartDictionarySerializer)' <table to create> <movies.tsv>
+
+## License
+
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
