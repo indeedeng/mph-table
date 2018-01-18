@@ -2,6 +2,7 @@ package com.indeed.mph;
 
 import com.google.common.collect.ImmutableList;
 import com.indeed.mph.serializers.AbstractSmartSerializer;
+import com.indeed.mph.serializers.SmartBase32Serializer;
 import com.indeed.mph.serializers.SmartByteSerializer;
 import com.indeed.mph.serializers.SmartDictionarySerializer;
 import com.indeed.mph.serializers.SmartListSerializer;
@@ -376,6 +377,38 @@ public class TestTableWriter {
             }
             assertEquals(entries, extracted);
             assertEquals(null, reader.get("1a37dp50i9tpien8"));
+        }
+    }
+
+    @Test
+    public void testWriteFixedCtkList() throws Exception {
+        final File table = new File(tmpDir, "fixedctklist");
+        final TableConfig<Long, List<String>> config =
+            new TableConfig()
+            .withKeySerializer(new SmartLongSerializer())
+            .withValueSerializer(new SmartListSerializer(new SmartBase32Serializer(80), 100));
+        final Set<Pair<Long, List<String>>> entries = new HashSet<>();
+        entries.add(new Pair<>(-8958556657105698816L, Arrays.<String>asList("eusb7o0sj89fs07o")));
+        entries.add(new Pair<>(-1404006683118469120L, Arrays.<String>asList("3ks18crbfd8r5clc")));
+        entries.add(new Pair<>(-2959110065296703488L, Arrays.<String>asList("6h8tipuj542rm0r3")));
+        entries.add(new Pair<>(3828756529465982976L, Arrays.<String>asList("vqgchrof6cv200d8")));
+        entries.add(new Pair<>(8843920576862552064L, Arrays.<String>asList("pmirui3u00dot0jl")));
+        entries.add(new Pair<>(5682617893516935168L, Arrays.<String>asList("k2ufmik8mirl70lf")));
+        entries.add(new Pair<>(5285114767967322112L, Arrays.<String>asList("gdloa6tbnrtug551")));
+        entries.add(new Pair<>(849131654930694144L, Arrays.<String>asList("5vnsuao32btg29pq")));
+        entries.add(new Pair<>(-8209908480332464128L, Arrays.<String>asList("66v2divp6ue581vj")));
+        entries.add(new Pair<>(2199589795716595712L, Arrays.<String>asList("bbua0vrgjhn210jd")));
+        TableWriter.write(table, config, entries);
+        try (final TableReader<Long, List<String>> reader = TableReader.open(table)) {
+            for (final Pair<Long, List<String>> e : entries) {
+                assertEquals(e.getSecond(), reader.get(e.getFirst()));
+            }
+            final Set<Pair<Long, List<String>>> extracted = new HashSet<>();
+            for (final Pair<Long, List<String>> e : reader) {
+                extracted.add(e);
+            }
+            assertEquals(entries, extracted);
+            assertEquals(null, reader.get(1L));
         }
     }
 

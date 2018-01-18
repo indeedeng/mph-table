@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>
  *    --info: print the meta info
  *    --dump: print the key/values of the entire table as TSV
+ *    --hash: print only the hash value for each key
+ *    --offset: print only the data offset for each key
  *    --get key: print the value for a specific key
  *    --random: print the value for a randomly generated long
  * <p>
@@ -353,6 +355,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
     public static void main(final String[] args) throws IOException, InterruptedException {
         String keyStr = null;
         boolean quiet = false;
+        boolean onlyPrintHash = false;
+        boolean onlyPrintOffset = false;
         boolean info = false;
         boolean dump = false;
         boolean time = false;
@@ -366,6 +370,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
             case "--": break parse_opts;
             case "--dump": dump = true; break;
             case "--info": info = true; break;
+            case "--hash": onlyPrintHash = true; break;
+            case "--offset": onlyPrintOffset = true; break;
             case "--quiet": quiet = true; break;
             case "--time": time = true; break;
             case "--random": random = true; break;
@@ -400,6 +406,8 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
         final int reps = repetitions;
         final boolean rand = random;
         final boolean quietly = quiet;
+        final boolean printHash = onlyPrintHash;
+        final boolean printOffset = onlyPrintOffset;
         final long startTime = System.currentTimeMillis();
         try (final TableReader<Object, Object> reader = TableReader.<Object, Object>open(tablePath)) {
             final TableConfig<Object, Object> config = reader.getConfig();
@@ -412,9 +420,16 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
                                 final Object key = defaultKey != null ? defaultKey : rand ? rng.nextLong() : null;
                                 for (int j = 0; j < reps; ++j) {
                                     if (key != null) {
-                                        final Object value = reader.get(key);
-                                        if (!quietly) {
-                                            System.out.println(config.getValueSerializer().printToString(value));
+                                        if (printHash || printOffset) {
+                                            final long x = printHash ? reader.getHash(key) : reader.getOffset(key);
+                                            if (!quietly) {
+                                                System.out.println(x);
+                                            }
+                                        } else {
+                                            final Object value = reader.get(key);
+                                            if (!quietly) {
+                                                System.out.println(config.getValueSerializer().printToString(value));
+                                            }
                                         }
                                     } else {
                                         try (final BufferedReader in = new BufferedReader(
@@ -424,9 +439,17 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
                                                 if (line == null) {
                                                     break;
                                                 }
-                                                final Object value = reader.get(config.getKeySerializer().parseFromString(line));
-                                                if (!quietly) {
-                                                    System.out.println(config.getValueSerializer().printToString(value));
+                                                final Object lineKey = config.getKeySerializer().parseFromString(line);
+                                                if (printHash || printOffset) {
+                                                    final long x = printHash ? reader.getHash(lineKey) : reader.getOffset(lineKey);
+                                                    if (!quietly) {
+                                                        System.out.println(x);
+                                                    }
+                                                } else {
+                                                    final Object value = reader.get(lineKey);
+                                                    if (!quietly) {
+                                                        System.out.println(config.getValueSerializer().printToString(value));
+                                                    }
                                                 }
                                             }
                                         }

@@ -850,7 +850,7 @@ public class TableWriter {
         throw new IOException("couldn't find a suitable SmartSerializer constructor: " + name);
     }
 
-    static SmartSerializer<Object> parseSerializer(final String name) throws IOException {
+    public static SmartSerializer<Object> parseSerializer(final String name) throws IOException {
         final Object obj = parseSerializerObject(name);
         if (obj instanceof SmartSerializer) {
             return (SmartSerializer<Object>) obj;
