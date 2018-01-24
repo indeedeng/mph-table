@@ -32,7 +32,7 @@ public class SmartListSerializer<T> extends AbstractSmartSerializer<List<T>> {
     private final LinearDiophantineEquation sizeEq;
     private final boolean ignoreErrors;
 
-    public SmartListSerializer(final SmartSerializer serializer, final long limit, final Pattern separator, final boolean ignoreErrors) {
+    public SmartListSerializer(final SmartSerializer<T> serializer, final long limit, final Pattern separator, final boolean ignoreErrors) {
         this.serializer = serializer;
         this.limit = limit;
         this.separator = separator;
@@ -42,23 +42,23 @@ public class SmartListSerializer<T> extends AbstractSmartSerializer<List<T>> {
             ONE_PLUS;
     }
 
-    public SmartListSerializer(final SmartSerializer serializer, final long limit, final Pattern separator) {
+    public SmartListSerializer(final SmartSerializer<T> serializer, final long limit, final Pattern separator) {
         this(serializer, limit, separator, false);
     }
 
-    public SmartListSerializer(final SmartSerializer serializer, final long limit, final String separator, final boolean ignoreErrors) {
+    public SmartListSerializer(final SmartSerializer<T> serializer, final long limit, final String separator, final boolean ignoreErrors) {
         this(serializer, limit, Pattern.compile(separator), ignoreErrors);
     }
 
-    public SmartListSerializer(final SmartSerializer serializer, final long limit, final String separator) {
+    public SmartListSerializer(final SmartSerializer<T> serializer, final long limit, final String separator) {
         this(serializer, limit, separator, false);
     }
 
-    public SmartListSerializer(final SmartSerializer serializer, final long limit) {
+    public SmartListSerializer(final SmartSerializer<T> serializer, final long limit) {
         this(serializer, limit, COMMA);
     }
 
-    public SmartListSerializer(final SmartSerializer serializer) {
+    public SmartListSerializer(final SmartSerializer<T> serializer) {
         this(serializer, 0L);
     }
 

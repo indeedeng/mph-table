@@ -108,7 +108,7 @@ public class TableConfig<K, V> implements Serializable {
     }
 
     public TableConfig() {
-        this(null, null, new EqualKeyValidator(), KeyStorage.EXPLICIT, OffsetStorage.AUTOMATIC, RangeChecking.NONE, 0, 0, 0, DEFAULT_SHARD_SIZE, false);
+        this(null, null, new EqualKeyValidator<>(), KeyStorage.EXPLICIT, OffsetStorage.AUTOMATIC, RangeChecking.NONE, 0, 0, 0, DEFAULT_SHARD_SIZE, false);
     }
 
     public SmartSerializer<? super K> getKeySerializer() {

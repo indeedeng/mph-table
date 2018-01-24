@@ -25,17 +25,17 @@ public class SmartHashSerializer extends SmartIntegerSerializer {
     private final Parseable<Long> parser;
     private final boolean ignoreErrors;
 
-    public SmartHashSerializer(final AbstractHashFunction mph, final Parseable<Long> parser, final boolean ignoreErrors) {
+    public SmartHashSerializer(final AbstractHashFunction<Long> mph, final Parseable<Long> parser, final boolean ignoreErrors) {
         this.mph = mph;
         this.parser = parser;
         this.ignoreErrors = ignoreErrors;
     }
 
-    public SmartHashSerializer(final AbstractHashFunction mph, final Parseable<Long> parser) {
+    public SmartHashSerializer(final AbstractHashFunction<Long> mph, final Parseable<Long> parser) {
         this(mph, parser, false);
     }
 
-    public SmartHashSerializer(final AbstractHashFunction mph) {
+    public SmartHashSerializer(final AbstractHashFunction<Long> mph) {
         this(mph, null);
     }
 
