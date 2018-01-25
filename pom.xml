@@ -53,6 +53,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>16.0.1</version>
@@ -116,5 +128,8 @@
         <!-- these should only be SNAPSHOTs when no release is available -->
         <indeed-util.version>1.0.24</indeed-util.version>
         <fastutil.version>6.5.15</fastutil.version>
+
+        <!-- these versions should be kept in lockstep across multiple dependencies -->
+        <slf4j.version>1.7.5</slf4j.version>
     </properties>
 </project>
