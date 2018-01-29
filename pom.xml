@@ -29,6 +29,21 @@
     <!--     <developerConnection>scm:git:git@github.com:indeedeng/mph-table.git</developerConnection> -->
     <!-- </scm> -->
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
     <dependencies>
 
         <dependency>
@@ -54,10 +69,10 @@
             <artifactId>sux4j</artifactId>
             <version>4.0.0</version>
             <exclusions>
-              <exclusion>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
