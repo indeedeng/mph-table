@@ -4,8 +4,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static com.indeed.mph.serializers.TestSmartDictionarySerializer.assertRoundTrip;
-import static com.indeed.mph.serializers.TestSmartDictionarySerializer.assertSerializerError;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertRoundTrip;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertSerializerError;
 
 /**
  * @author xinjianz
