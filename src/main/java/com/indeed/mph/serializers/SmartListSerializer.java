@@ -3,6 +3,7 @@ package com.indeed.mph.serializers;
 import com.indeed.mph.LinearDiophantineEquation;
 import com.indeed.mph.SmartSerializer;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class SmartListSerializer<T> extends AbstractSmartSerializer<List<T>> {
     }
 
     @Override
-    public void write(final List<T> objs, final DataOutput out) throws IOException {
+    public void write(@Nonnull final List<T> objs, final DataOutput out) throws IOException {
         if (limit > 0 && objs.size() > limit) {
             throw new IllegalArgumentException("exceeded list limit " + limit + ": " + objs);
         }

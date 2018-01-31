@@ -2,6 +2,7 @@ package com.indeed.mph.serializers;
 
 import com.indeed.mph.LinearDiophantineEquation;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -19,7 +20,7 @@ public class SmartIntegerSerializer extends AbstractSmartSerializer<Integer> {
     }
 
     @Override
-    public void write(final Integer n, final DataOutput out) throws IOException {
+    public void write(@Nonnull final Integer n, final DataOutput out) throws IOException {
         out.writeInt(n);
     }
 

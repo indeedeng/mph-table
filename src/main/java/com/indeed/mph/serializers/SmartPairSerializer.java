@@ -4,6 +4,7 @@ import com.indeed.util.core.Pair;
 import com.indeed.mph.LinearDiophantineEquation;
 import com.indeed.mph.SmartSerializer;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class SmartPairSerializer<U, V> extends AbstractSmartSerializer<Pair<U, V
     }
 
     @Override
-    public void write(final Pair<U, V> pair, final DataOutput out) throws IOException {
+    public void write(@Nonnull final Pair<U, V> pair, final DataOutput out) throws IOException {
         serializer1.write(pair.getFirst(), out);
         serializer2.write(pair.getSecond(), out);
     }

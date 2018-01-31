@@ -5,6 +5,7 @@ import com.indeed.mph.LinearDiophantineEquation;
 import com.indeed.mph.SmartSerializer;
 import com.indeed.util.serialization.LengthVIntSerializer;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class SmartStringSerializer extends AbstractSmartSerializer<String> {
     }
 
     @Override
-    public void write(final String s, final DataOutput out) throws IOException {
+    public void write(@Nonnull final String s, final DataOutput out) throws IOException {
         final byte[] bytes = s.getBytes(Charsets.UTF_8);
         lengthSerializer.write(bytes.length, out);
         out.write(bytes);
