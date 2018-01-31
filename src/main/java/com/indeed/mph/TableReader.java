@@ -152,9 +152,9 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
             final byte[] rawData = new byte[(int) data.memory().length()];
             data.memory().getBytes(0, rawData);
             data.close();
-            return new TableReader(meta, rawData);
+            return new TableReader<>(meta, rawData);
         } else {
-            return new TableReader(meta, data, offsets);
+            return new TableReader<>(meta, data, offsets);
         }
     }
 

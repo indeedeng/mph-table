@@ -27,7 +27,7 @@ public class SharedTableReader<K, V> implements Closeable {
     }
 
     public static <K, V> SharedTableReader<K, V> open(@Nonnull final File metaPath, @Nullable final File offsetsPath, @Nullable final File dataPath) throws IOException {
-        return new SharedTableReader(TableReader.open(metaPath, offsetsPath, dataPath));
+        return new SharedTableReader<>(TableReader.open(metaPath, offsetsPath, dataPath));
     }
 
     public static <K, V> SharedTableReader<K, V> open(@Nonnull final File metaPath) throws IOException {
