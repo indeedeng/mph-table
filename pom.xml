@@ -43,7 +43,6 @@
         </plugins>
     </build>
 
-
     <dependencies>
 
         <dependency>
@@ -116,6 +115,21 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-core</artifactId>
+            <version>${junit-quickcheck.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-generators</artifactId>
+            <version>${junit-quickcheck.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -131,5 +145,6 @@
 
         <!-- these versions should be kept in lockstep across multiple dependencies -->
         <slf4j.version>1.7.5</slf4j.version>
+        <junit-quickcheck.version>0.7</junit-quickcheck.version>
     </properties>
 </project>

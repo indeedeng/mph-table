@@ -5,8 +5,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
-import static com.indeed.mph.serializers.TestSmartDictionarySerializer.assertRoundTrip;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertRoundTrip;
 
 /**
  * @author xinjianz
@@ -18,14 +19,14 @@ public class TestSmartSmallLongListSerializer {
         for (long offset = -100; offset <= 100; offset += 100) {
             final SmartSmallLongListSerializer serializer = new SmartSmallLongListSerializer(offset);
             // Test empty list.
-            assertRoundTrip(serializer, new ArrayList<Long>());
+            assertRoundTrip(serializer, new ArrayList<>());
             // Test singleton array of small number.
             for (long number = 0; number <= 128; ++number) {
-                assertRoundTrip(serializer, Arrays.asList(number));
+                assertRoundTrip(serializer, Collections.singletonList(number));
             }
             // Test singleton array of big number.
-            assertRoundTrip(serializer, Arrays.asList(10000L));
-            assertRoundTrip(serializer, Arrays.asList(Long.MAX_VALUE));
+            assertRoundTrip(serializer, Collections.singletonList(10000L));
+            assertRoundTrip(serializer, Collections.singletonList(Long.MAX_VALUE));
             // Test 2-elements array can be compressed
             assertRoundTrip(serializer, Arrays.asList(5L, 6L));
             // Test 2-elements array can't be compressed
@@ -41,12 +42,12 @@ public class TestSmartSmallLongListSerializer {
             assertRoundTrip(serializer, Arrays.asList(4L, 4L, 6L));
             assertRoundTrip(serializer, Arrays.asList(4L, 4L, 6L, 6L));
             // Test big integer
-            assertRoundTrip(serializer, Arrays.asList(10000000L));
+            assertRoundTrip(serializer, Collections.singletonList(10000000L));
             assertRoundTrip(serializer, Arrays.asList(100L, 2000L, 30000L));
             assertRoundTrip(serializer, Arrays.asList(1L, 2L, 2000L, 5L, 30000L));
             // Test negative integer
-            assertRoundTrip(serializer, Arrays.asList(-1L));
-            assertRoundTrip(serializer, Arrays.asList(-10000000L));
+            assertRoundTrip(serializer, Collections.singletonList(-1L));
+            assertRoundTrip(serializer, Collections.singletonList(-10000000L));
             assertRoundTrip(serializer, Arrays.asList(100L, -2000L, -30000L));
             // Test all together
             assertRoundTrip(serializer, Arrays.asList(1L, 2L, 3L, 100000L, 4L, 5L, -100L, -1000L, 6L, 7L));

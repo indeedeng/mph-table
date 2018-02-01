@@ -1,16 +1,10 @@
 package com.indeed.mph.serializers;
 
-import com.indeed.mph.SmartSerializer;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertParseRoundTrip;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertRoundTrip;
+import static com.indeed.mph.helpers.RoundTripHelpers.assertSerializerError;
 
 public class TestSmartBase32Serializer {
 
@@ -42,42 +36,5 @@ public class TestSmartBase32Serializer {
         assertSerializerError(serializer, "1ak04h8j_bsplbs7");
         assertSerializerError(serializer, "1ak04h8jobsplbs78");
         assertParseRoundTrip(serializer, "1ak04h8jobsplbs7");
-    }
-
-    public static <T> T roundTrip(final SmartSerializer<T> serializer, final T value) throws IOException {
-        final ByteArrayOutputStream outBuf = new ByteArrayOutputStream();
-        final DataOutputStream out = new DataOutputStream(outBuf);
-        serializer.write(value, out);
-        final ByteArrayInputStream inBuf = new ByteArrayInputStream(outBuf.toByteArray());
-        final DataInputStream in = new DataInputStream(inBuf);
-        return serializer.read(in);
-    }
-
-    public static <T> void assertRoundTrip(final SmartSerializer<T> serializer, final T value) throws IOException {
-        assertEquals(value, roundTrip(serializer, value));
-    }
-
-    public static <T> void assertParseRoundTrip(final SmartSerializer<T> serializer, final String s) throws IOException {
-        assertEquals(s, serializer.printToString(serializer.parseFromString(s)));
-    }
-
-    public static <T> void assertSerializerError(final SmartSerializer<T> serializer, final T value) {
-        boolean failed = false;
-        try {
-            roundTrip(serializer, value);
-        } catch (final Exception e) {
-            failed = true;
-        }
-        assertTrue(failed);
-    }
-
-    public static <T> void assertParseError(final SmartSerializer<T> serializer, final String s) {
-        boolean failed = false;
-        try {
-            serializer.parseFromString(s);
-        } catch (final Exception e) {
-            failed = true;
-        }
-        assertTrue(failed);
     }
 }

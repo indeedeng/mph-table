@@ -3,8 +3,7 @@
  import com.indeed.mph.SmartSerializer;
  import org.junit.Test;
 
- import static com.indeed.mph.serializers.TestSmartDictionarySerializer.roundTrip;
-
+ import static com.indeed.mph.helpers.RoundTripHelpers.roundTrip;
  import static org.junit.Assert.assertEquals;
 
  public class TestSmartFloatFixed8Serializer {
