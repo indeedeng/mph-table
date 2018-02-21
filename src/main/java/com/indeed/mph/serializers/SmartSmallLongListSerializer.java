@@ -2,6 +2,7 @@ package com.indeed.mph.serializers;
 
 import com.google.common.primitives.Bytes;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class SmartSmallLongListSerializer extends AbstractSmartSerializer<List<L
      * @param out DataOutput.
      * @throws IOException if unable to write to out
      */
-    public void writeDataOnly(final List<Long> data, final DataOutput out) throws IOException {
+    private void writeDataOnly(final List<Long> data, final DataOutput out) throws IOException {
         int index = 0;
         while (index < data.size()) {
             final long number0 = data.get(index) - offset;
@@ -81,7 +82,7 @@ public class SmartSmallLongListSerializer extends AbstractSmartSerializer<List<L
     }
 
     @Override
-    public void write(final List<Long> data, final DataOutput out) throws IOException {
+    public void write(@Nonnull final List<Long> data, final DataOutput out) throws IOException {
         lengthSerializer.write((long)data.size(), out);
         writeDataOnly(data, out);
     }

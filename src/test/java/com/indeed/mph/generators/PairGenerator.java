@@ -34,8 +34,8 @@ public class PairGenerator extends ComponentizedGenerator<Pair> {
 
     @Override
     public List<Pair> doShrink(final SourceOfRandomness random, final Pair larger) {
-        List<?> shrunkenFirsts = componentGenerators().get(FIRST).shrink(random, larger.getFirst());
-        List<?> shrunkenSeconds = componentGenerators().get(SECOND).shrink(random, larger.getSecond());
+        final List<?> shrunkenFirsts = componentGenerators().get(FIRST).shrink(random, larger.getFirst());
+        final List<?> shrunkenSeconds = componentGenerators().get(SECOND).shrink(random, larger.getSecond());
 
         return IntStream.range(0, Math.min(shrunkenFirsts.size(), shrunkenSeconds.size()))
                 .mapToObj(i -> Pair.of(shrunkenFirsts.get(i), shrunkenSeconds.get(i)))

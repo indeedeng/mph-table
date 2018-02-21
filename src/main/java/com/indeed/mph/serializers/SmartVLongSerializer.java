@@ -2,6 +2,7 @@ package com.indeed.mph.serializers;
 
 import com.indeed.mph.LinearDiophantineEquation;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -14,7 +15,7 @@ public class SmartVLongSerializer extends AbstractSmartLongSerializer {
     private static final long serialVersionUID = 2147053399;
 
     @Override
-    public void write(final Long n, final DataOutput out) throws IOException {
+    public void write(@Nonnull final Long n, final DataOutput out) throws IOException {
         writeVLong(out, n);
     }
 
@@ -74,7 +75,7 @@ public class SmartVLongSerializer extends AbstractSmartLongSerializer {
      * @throws java.io.IOException if unable to write to out
      */
     @SuppressWarnings("fallthrough")
-    public static void writeVLong(final DataOutput out, final long n) throws IOException {
+    static void writeVLong(final DataOutput out, final long n) throws IOException {
         if ((n < 128) && (n >= -32)) {
             out.writeByte((int) n);
             return;

@@ -2,6 +2,7 @@ package com.indeed.mph.serializers;
 
 import com.indeed.mph.LinearDiophantineEquation;
 
+import javax.annotation.Nonnull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class SmartFloatFixed8Serializer extends AbstractSmartFloatSerializer {
     }
 
     @Override
-    public void write(final Float v, final DataOutput out) throws IOException {
+    public void write(@Nonnull final Float v, final DataOutput out) throws IOException {
         out.writeByte(floatToByte(v));
     }
 
