@@ -344,7 +344,7 @@ public class TableReader<K, V> implements Closeable, Iterable<Pair<K, V>> {
         public String toString() {
             final long total = filteredCount + missingCount + retrievedCount;
             if (total == 0) {
-                return "[filtered: 0 missing: 0 retrived: 0]";
+                return "[filtered: 0 missing: 0 retrieved: 0]";
             }
             return "[filtered: " + filteredCount + " (" + (100.0 * filteredCount / total) +
                 "%) missing: " + missingCount + " (" + (100.0 * missingCount / total) +
