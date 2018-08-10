@@ -23,11 +23,11 @@
         </license>
     </licenses>
 
-    <!-- <scm> -->
-    <!--     <url>https://github.com/indeedeng/mph-table</url> -->
-    <!--     <connection>scm:git:https://github.com/indeedeng/mph-table.git</connection> -->
-    <!--     <developerConnection>scm:git:git@github.com:indeedeng/mph-table.git</developerConnection> -->
-    <!-- </scm> -->
+    <scm>
+        <url>https://github.com/indeedeng/mph-table</url>
+        <connection>scm:git:https://github.com/indeedeng/mph-table.git</connection>
+        <developerConnection>scm:git:git@github.com:indeedeng/mph-table.git</developerConnection>
+    </scm>
 
     <build>
         <plugins>
