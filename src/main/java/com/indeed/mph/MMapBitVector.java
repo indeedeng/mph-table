@@ -3,8 +3,6 @@ package com.indeed.mph;
 import com.indeed.util.mmap.MMapBuffer;
 import it.unimi.dsi.bits.AbstractBitVector;
 
-import java.io.IOException;
-
 public class MMapBitVector extends AbstractBitVector {
     final MMapBuffer buffer;    // we're not responsible for closing this
 
