@@ -1,6 +1,6 @@
 # Minimal Perfect Hash Tables
 
-![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/indeedeng/mph-table.svg)
+![OSS Lifecycle](https://img.shields.io/osslifecycle/indeedeng/mph-table.svg)
 
 ## About
 
