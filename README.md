@@ -1,5 +1,7 @@
 # Minimal Perfect Hash Tables
 
+![OSS Lifecycle](https://img.shields.io/osslifecycle/indeedeng/mph-table.svg)
+
 ## About
 
 Minimal Perfect Hash Tables are an immutable key/value store with
@@ -69,6 +71,9 @@ you to quickly get started without writing any code:
 
     # same as above, not actually storing the movie ids but still allowing retrieval by them
     $ java com.indeed.mph.TableWriter --keyStorage IMPLICIT --keySerializer .SmartVLongSerializer --valueSerializer '.SmartListSerializer(.SmartDictionarySerializer)' <table to create> <movies.tsv>
+
+## Code of Conduct
+This project is governed by the [Contributor Covenant v 1.4.1](CODE_OF_CONDUCT.md)
 
 ## License
 
